@@ -12,10 +12,10 @@ from nltk.tokenize import word_tokenize
 from sklearn.pipeline import Pipeline,FeatureUnion
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer 
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import GridSearchCV
 
 from sqlalchemy import create_engine
@@ -38,9 +38,9 @@ def load_data(database_filepath):
     df = pd.read_sql_table('DisasterResponse',engine)
     X = df.loc[:, 'message']
     y = df.iloc[:, 4:]
-    labels = list(df.columns[4:])
+    label = list(df.columns[4:])
     
-    return X, y, labels
+    return X, y, label
  
               
 def tokenize(text):
@@ -67,22 +67,29 @@ def tokenize(text):
 def build_model():
     """ 
     Input: 
-    none
+    Parameters for classification
     
     Output:         
-    cv: Gridsearch 
+    grid: Gridsearch 
     
     """    
     # Model definition
-    pipeline = Pipeline([
-            ("vec", CountVectorizer(tokenizer=tokenize)),
-            ("classifier", RandomForestClassifier(n_estimators=100,
-                                              max_features=0.1,
-                                              n_jobs=-1))])
-        
+    classification = MultiOutputClassifier(RandomForestClassifier())
 
+    pipeline = Pipeline([
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', classification)
+        ])
+
+    parameters = {'clf__estimator__max_depth': [10, 30, None],
+              'clf__estimator__min_samples_leaf':[2, 5, 10]}
+    
+    grid = GridSearchCV(pipeline, parameters) 
                
-    return pipeline    
+    return grid    
+               
+
 
 def evaluate_model(model, X_test, Y_test, category_names):
     '''
