@@ -50,7 +50,7 @@ def index():
     genre_names = list(genre_counts.index)
     
     # data for 2nd plot
-    remove_columns = df.drop(columns = ['id', 'message', 'original', 'genre'])
+    categories = df.drop(columns = ['id', 'message', 'original', 'genre'])
     cat = categories.columns.values
     cat_counts = categories.sum().values
     
@@ -72,13 +72,12 @@ def index():
                     'title': "Genre"
                 }
             }
-        }
-                {
+        },
+        {
             'data': [
                 Bar(
                     x=cat,
                     y=cat_counts,
-                    marker_color='purple'
                 )
             ],
 
