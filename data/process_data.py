@@ -51,16 +51,20 @@ def clean_data(df):
     for column in categories:  
         categories[column] = categories[column].str[-1:]
         categories[column] = categories[column].astype(np.int)
-                    
+    
+    
     # drop original categories
     df = df.drop('categories', axis=1)
-                    
+
     # concate the dataframe
     df = pd.concat([df, categories], axis=1)
   
     # drop dublicates
-    df = df.drop_duplicates()            
+    df = df.drop_duplicates()     
     
+    # dropping the 2 value from column related
+    df.loc[df['related'] > 1,'related'] = 0
+        
     return df
 
 
@@ -80,7 +84,7 @@ def save_data(df, database_filename):
     engine = create_engine('sqlite:///'+ database_filename)
 
     # send df to sqlite file, omitting the index
-    df.to_sql('DisasterResponse', engine, index=False)
+    df.to_sql('DisasterResponse', engine, index=False, if_exists='replace')
     
     # print statement
     print("Data was saved to {}".format(database_filename))
